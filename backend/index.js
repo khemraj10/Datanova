@@ -17,7 +17,7 @@ app.post("/api/encode", (req, res) => {
 
 app.post("/api/decode", (req, res) => {
   try {
-    const result = decode(req.body.encoded || "");
+    const result = decode(req.body.text || "");
     res.json({ text: result });
   } catch (e) {
     res.status(400).json({ error: e.code });

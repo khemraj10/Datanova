@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { toast, Toaster } from "./toast";
+import "./App.css";
 
 const callApi = async (path, body, setter) => {
   try {
@@ -27,29 +28,58 @@ export default function App() {
   const [output, setOutput] = useState("");
 
   return (
-    <div className="p-4 max-w-xl mx-auto">
-      <Toaster />
-      <h1 className="text-2xl mb-4">Symbol Cipher Tool</h1>
-      <textarea
-        className="w-full h-32 p-2 border"
-        value={input}
-        onChange={(e) => setInput(e.target.value)}
-      />
-      <div className="space-x-2 my-2">
-        <button
-          className="bg-blue-500 text-white px-4 py-1 rounded"
-          onClick={() => callApi("encode", { text: input }, setOutput)}
-        >
-          Encode
-        </button>
-        <button
-          className="bg-green-500 text-white px-4 py-1 rounded"
-          onClick={() => callApi("decode", { encoded: input }, setOutput)}
-        >
-          Decode
-        </button>
+    <div className="wrapper">
+      <div className="cipher-box">
+        <h1 className="title">Symbol Cipher Tool</h1>
+
+        <div className="field-group">
+          {/* Input */}
+          <div className="field">
+            <label htmlFor="input" className="label">
+              Input
+            </label>
+            <textarea
+              id="input"
+              rows={6}
+              className="textarea input"
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              placeholder="Enter text to encode or decode..."
+            />
+          </div>
+
+          {/* Output */}
+          <div className="field">
+            <label htmlFor="output" className="label">
+              Output
+            </label>
+            <textarea
+              id="output"
+              rows={6}
+              className="textarea output"
+              value={output}
+              readOnly
+              placeholder="Output will appear here..."
+            />
+          </div>
+        </div>
+
+        <div className="button-group">
+          <button
+            onClick={() => callApi("encode", { text: input }, setOutput)}
+            className="btn encode"
+          >
+            Encode
+          </button>
+          <button
+            onClick={() => callApi("decode", { text: input }, setOutput)}
+            className="btn decode"
+          >
+            Decode
+          </button>
+        </div>
       </div>
-      <textarea className="w-full h-32 p-2 border" value={output} readOnly />
+      <Toaster />
     </div>
   );
 }

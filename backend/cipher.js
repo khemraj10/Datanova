@@ -27,44 +27,58 @@ const symbolMap = {
   z: "ζ",
 };
 
-const inverseMap = Object.entries(symbolMap).reduce((acc, [k, v]) => {
-  acc[v] = k;
-  if (v.toUpperCase() !== v) acc[v.toUpperCase()] = k.toUpperCase();
-  return acc;
-}, {});
+const inverseMap = Object.fromEntries(
+  Object.entries(symbolMap).map(([k, v]) => [v, k])
+);
 
 function hasInvalidControlChars(text) {
   return [...text].some(
     (c) => (c.charCodeAt(0) < 0x20 && c !== "\n") || c.charCodeAt(0) === 0x7f
   );
 }
-
 function encode(text) {
-  if ([...text].length > 280) throw { code: "INPUT_TOO_LONG" };
-  if (hasInvalidControlChars(text)) throw { code: "UNSUPPORTED_CONTROL_CHAR" };
+  if ([...text].length > 280) throw new Error("INPUT_TOO_LONG");
+  if (hasInvalidControlChars(text)) throw new Error("UNSUPPORTED_CONTROL_CHAR");
+
   return [...text]
-    .map((c) => {
-      const lower = c.toLowerCase();
-      if (symbolMap[lower])
-        return c === lower ? symbolMap[lower] : symbolMap[lower].toUpperCase();
-      return c;
+    .map((char) => {
+      const lower = char.toLowerCase();
+      if (symbolMap[lower]) {
+        const symbol = symbolMap[lower];
+        // If original char is uppercase, prefix symbol with '^'
+        return char === lower ? symbol : "^" + symbol;
+      }
+      return char;
     })
     .join("");
 }
 
-function decode(encoded) {
-  if ([...encoded].length > 280) throw { code: "INPUT_TOO_LONG" };
-  if (hasInvalidControlChars(encoded))
-    throw { code: "UNSUPPORTED_CONTROL_CHAR" };
-  return [...encoded]
-    .map((c) => {
-      if (inverseMap[c]) return inverseMap[c];
-      if (/^[a-zA-Z]$/.test(c)) return c;
-      if (Object.values(symbolMap).includes(c))
-        throw { code: "UNKNOWN_SYMBOL" };
-      return c;
-    })
-    .join("");
+function decode(text) {
+  if ([...text].length > 280) throw new Error("INPUT_TOO_LONG");
+  if (hasInvalidControlChars(text)) throw new Error("UNSUPPORTED_CONTROL_CHAR");
+
+  const chars = [...text];
+  let result = [];
+  for (let i = 0; i < chars.length; i++) {
+    if (chars[i] === "^") {
+      // Next char is an uppercase letter symbol
+      i++;
+      const symbol = chars[i];
+      if (inverseMap[symbol]) {
+        result.push(inverseMap[symbol].toUpperCase());
+      } else {
+        // Unknown symbol after '^', just add both chars
+        result.push("^" + symbol);
+      }
+    } else {
+      if (inverseMap[chars[i]]) {
+        result.push(inverseMap[chars[i]]);
+      } else {
+        result.push(chars[i]);
+      }
+    }
+  }
+  return result.join("");
 }
 
 module.exports = { encode, decode };
